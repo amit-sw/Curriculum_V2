@@ -3,11 +3,11 @@ from typing import TypedDict
 from langgraph.graph import StateGraph, START, END
 from pydantic import BaseModel
 from langchain_core.messages import BaseMessage, SystemMessage
-from prompt_manager import get_prompt
+from utils.prompt_manager import get_prompt
 from langchain_openai import OpenAI
 import json
 
-from slash_command_runner import run_slash_command
+from integration.slash_command_runner import run_slash_command
 
 def create_llm_msg(system_prompt: str, messageHistory: list[BaseMessage]):
     resp = []
@@ -17,9 +17,9 @@ def create_llm_msg(system_prompt: str, messageHistory: list[BaseMessage]):
 
 
 class AgentState(TypedDict):
-    response_to_user: str
     incremental_response: str
     final_response: str
+    expanded_response: str
     category: str
     user_prompt: str
     original_slides: dict
@@ -29,7 +29,7 @@ class Category(BaseModel):
     category: str
     information: str
 
-VALID_CATEGORIES = ["clarification", "generate_slide_content", "update_content", "generate_for_code"]
+VALID_CATEGORIES = ["clarification", "generate_slide_content", "update_content", "generate_for_code","slash_command"]
 
 class SlideContentBlockText(BaseModel):
     type: str = "text"
@@ -83,6 +83,7 @@ class SlideGraph():
         workflow.add_node("generate_slide_content", self.generate_slide_content)
         workflow.add_node("update_content", self.update_content)
         workflow.add_node("generate_for_code", self.generate_for_code)
+        workflow.add_node("slash_command", self.slash_command)
 
         workflow.add_conditional_edges("classifier", self.main_router)
         workflow.add_edge(START, "classifier")
@@ -90,6 +91,7 @@ class SlideGraph():
         workflow.add_edge("generate_slide_content", END)
         workflow.add_edge("update_content", END)
         workflow.add_edge("generate_for_code", END)
+        workflow.add_edge("slash_command", END)
 
 
         self.graph = workflow.compile()
@@ -101,11 +103,7 @@ class SlideGraph():
         original_slides = state.get('original_slides', None)
         if user_prompt.startswith("/"):
             print(f"Got a command {user_prompt}, ignoring it for now.")
-            rs=run_slash_command(self.model, user_prompt, message_history, original_slides)
-            return {
-                "category": "slash_command",
-                "final_response": rs,
-            }
+            return {"category": "slash_command",}
         CLASSIFIER_PROMPT = get_prompt("classifier")
         llm_messages = create_llm_msg(CLASSIFIER_PROMPT, state['message_history'])
         llm_response = self.model.with_structured_output(Category).invoke(llm_messages)
@@ -129,9 +127,9 @@ class SlideGraph():
     def clarification(self, state: AgentState):
         print("clarification")
         llm_messages = create_llm_msg(get_prompt("clarification"), state['message_history'])
-        return {
-            "incremental_response": self.model.stream(llm_messages)
-        }
+        #return {"incremental_response": self.model.stream(llm_messages)}
+        resp = self.model.invoke(llm_messages)
+        return {"final_response": resp.content}
     
     def generate_slide_content(self, state: AgentState):
         print("generate_slide+content")
@@ -141,21 +139,28 @@ class SlideGraph():
         resp_dict = resp.model_dump() if hasattr(resp, "model_dump") else resp.dict()
 
         return {
-            "full_response": json.dumps(resp_dict, indent=2),
+            "final_response": resp.user_message,
+            "expanded_response": json.dumps(resp_dict, indent=2),
             "original_slides": resp_dict,
         }
     
     def update_content(self, state: AgentState):
-        print("update_content")
+        print("update_content TODO TODO TODO")
         llm_messages = create_llm_msg(get_prompt("update_content"), state['message_history'])
         return {
             "incremental_response": self.model.stream(llm_messages)
         }
     
     def generate_for_code(self, state: AgentState):
-        print("generate_for_code")
+        print("generate_for_code TODO TODO TODO")
         llm_messages = create_llm_msg(get_prompt("generate_for_code"), state['message_history'])
         return {
             "incremental_response": self.model.stream(llm_messages)
         }
     
+    def slash_command(self, state: AgentState):
+        print("slash_command TODO TODO TODO")
+        resp = run_slash_command(self.model, state['user_prompt'], state['message_history'], state.get('original_slides', None))    
+        return {
+            "final_response": resp,
+        }

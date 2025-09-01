@@ -1,8 +1,8 @@
 import streamlit as st
 import os
 
-from verified_ui import show_ui_role_based
-from supabase_integration import get_supabase_client, get_user_from_db
+from ui.verified_ui import show_ui_role_based
+from integration.supabase_integration import get_supabase_client, get_user_from_db
 
 
 os.environ["LANGCHAIN_TRACING_V2"]="true"

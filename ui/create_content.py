@@ -1,8 +1,9 @@
 import streamlit as st
 import random
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from slide_graph import SlideGraph
-from slash_command_runner import run_slash_command
+
+from graph.slide_graph import SlideGraph
+from integration.slash_command_runner import run_slash_command
 
 st.title("Create Content")
 
@@ -49,9 +50,9 @@ def show_chat_ui():
             full_response = ""
             
             for s in runGraph.graph.stream({'message_history': get_message_history(st.session_state.messages),"user_prompt":user_prompt}, {"configurable":{"thread_id":thread_id}}):
-                print(f"GRAPH RUN: {s}")
+                #print(f"GRAPH RUN: {s}")
                 for k,v in s.items():
-                    print(f"Key: {k}, Value: {v}")
+                    print(f"\n\nDEBUG DEBUG Key: {k}, Value: {v}")
                 
                     if resp := v.get("incremental_response"):
                         with st.chat_message("assistant"):
@@ -63,11 +64,16 @@ def show_chat_ui():
                                     full_response = full_response + getattr(response, 'content', str(response))
                                 placeholder.markdown(full_response)
                         st.session_state.messages.append({"role": "assistant", "content": full_response})
-                    if resp := v.get("full_response"):
+                    if resp := v.get("final_response"):
                         full_response = resp
+                        print(f"\n\nDEBUG DDEBUG DEBUG. Final full response: {full_response}")
                         with st.chat_message("assistant"):
                             st.markdown(full_response)
                         st.session_state.messages.append({"role": "assistant", "content": full_response})
+                    if resp := v.get("expanded_response"):
+                        print(f"\n\nDEBUG DE. Expanded response: {resp}")
+                        with st.sidebar.expander("Detailed output"):
+                            st.markdown(f"{resp}")
 
 if __name__ == "__main__":
     show_chat_ui()

@@ -23,17 +23,17 @@ def show_ui_core(user,role):
     show_sidebar(user, role)
     pages = {
         "Generate": [
-            st.Page("create_content.py", title="Content"),
-            st.Page("create_slides.py", title="Slides"),
+            st.Page("ui/create_content.py", title="Content"),
+            st.Page("ui/create_slides.py", title="Slides"),
         ],
         "View": [
-            st.Page("view_content.py", title="Content"),
-            st.Page("view_slides.py", title="Slides"),
+            st.Page("ui/view_content.py", title="Content"),
+            st.Page("ui/view_slides.py", title="Slides"),
         ],
     }
     if role == "admin":
         pages["Admin"] = [
-            st.Page("manage_users.py", title="Users"),
+            st.Page("ui/manage_users.py", title="Users"),
         ]
 
     #pg = st.navigation(pages, position="top")
