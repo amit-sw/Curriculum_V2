@@ -45,13 +45,18 @@ class SlideContentBlockImage(BaseModel):
     query: str
     caption: str = ""
 
-class Slides(BaseModel):
+class Slide(BaseModel):
+    id: str
+    title: str
+    content_blocks: list[SlideContentBlockText | SlideContentBlockCode | SlideContentBlockImage]
+
+class SlideDeck(BaseModel):
     title: str
     subtitle: str = ""
-    content_blocks: list[SlideContentBlockText | SlideContentBlockCode | SlideContentBlockImage]
+    slides: list[Slide]
     user_message: str = ""
 
-def save_slides(slides: Slides):
+def save_slides(slides: SlideDeck):
     print(f"Saving slides: {slides}")
     slide_md = f"# {slides.title}\n\n"
     if slides.subtitle:
@@ -134,7 +139,7 @@ class SlideGraph():
     def generate_slide_content(self, state: AgentState):
         print("generate_slide+content")
         llm_messages = create_llm_msg(get_prompt("generate_slide_content"), state['message_history'])
-        resp = self.model.with_structured_output(Slides).invoke(llm_messages)
+        resp = self.model.with_structured_output(SlideDeck).invoke(llm_messages)
         # Convert the Pydantic model to a plain dict for serialization/state
         resp_dict = resp.model_dump() if hasattr(resp, "model_dump") else resp.dict()
 

@@ -17,7 +17,7 @@ from io import BytesIO
 import requests
 
 # Constants
-ASSETS_DIR = Path(__file__).parent / 'assets'
+ASSETS_DIR = Path(__file__).parent.parent / 'assets'
 TEMPLATE_DIR = ASSETS_DIR / 'templates'
 LOGOS_DIR = ASSETS_DIR / 'logos'
 
