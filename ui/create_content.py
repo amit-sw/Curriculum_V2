@@ -48,8 +48,11 @@ def show_chat_ui():
         runGraph = SlideGraph(st.secrets['OPENAI_MODEL_NAME'],st.secrets['OPENAI_API_KEY'])
         with st.spinner("Thinking ...", show_time=True):
             full_response = ""
+            params={'message_history': get_message_history(st.session_state.messages),"user_prompt":user_prompt}
+            if st.session_state.get("slide_content"):
+                params['slide_content'] = st.session_state.get("slide_content")
             
-            for s in runGraph.graph.stream({'message_history': get_message_history(st.session_state.messages),"user_prompt":user_prompt}, {"configurable":{"thread_id":thread_id}}):
+            for s in runGraph.graph.stream(params, {"configurable":{"thread_id":thread_id}}):
                 #print(f"GRAPH RUN: {s}")
                 for k,v in s.items():
                     print(f"\n\nDEBUG DEBUG Key: {k}, Value: {v}")
@@ -74,6 +77,9 @@ def show_chat_ui():
                         print(f"\n\nDEBUG DE. Expanded response: {resp}")
                         with st.sidebar.expander("Detailed output"):
                             st.markdown(f"{resp}")
+                    if resp := v.get("slide_content"):
+                        print(f"\n\nDEBUG DE. Adding to Session State the Slide content: {resp}")
+                        st.session_state["slide_content"] = resp
 
 if __name__ == "__main__":
     show_chat_ui()

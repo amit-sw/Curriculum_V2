@@ -17,6 +17,8 @@ def show_sidebar(user, role):
             st.image(picture, width=100)
         if st.button("Log out"):
             st.logout()
+        with st.expander("Session State"):
+            st.json(st.session_state)
 
 def show_ui_core(user,role):
 

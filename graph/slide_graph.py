@@ -22,7 +22,7 @@ class AgentState(TypedDict):
     expanded_response: str
     category: str
     user_prompt: str
-    original_slides: dict
+    slide_content: dict
     message_history: list[BaseMessage]
 
 class Category(BaseModel):
@@ -100,9 +100,9 @@ class SlideGraph():
         print("initial classifier")
         user_prompt = state['user_prompt']
         message_history = state['message_history']
-        original_slides = state.get('original_slides', None)
+        slide_content = state.get('slide_content', None)
         if user_prompt.startswith("/"):
-            print(f"Got a command {user_prompt}, ignoring it for now.")
+            print(f"Got a command {user_prompt}, moving up the state graph to Slash-Command")
             return {"category": "slash_command",}
         CLASSIFIER_PROMPT = get_prompt("classifier")
         llm_messages = create_llm_msg(CLASSIFIER_PROMPT, state['message_history'])
@@ -141,7 +141,7 @@ class SlideGraph():
         return {
             "final_response": resp.user_message,
             "expanded_response": json.dumps(resp_dict, indent=2),
-            "original_slides": resp_dict,
+            "slide_content": resp_dict,
         }
     
     def update_content(self, state: AgentState):
@@ -160,7 +160,7 @@ class SlideGraph():
     
     def slash_command(self, state: AgentState):
         print("slash_command TODO TODO TODO")
-        resp = run_slash_command(self.model, state['user_prompt'], state['message_history'], state.get('original_slides', None))    
+        resp = run_slash_command(self.model, state['user_prompt'], state['message_history'], state.get('slide_content', None))    
         return {
             "final_response": resp,
         }
