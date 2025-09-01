@@ -53,6 +53,17 @@ def update_calendar_events_in_db(supabase, events):
     except Exception as e:
         st.error(f"Error updating calendar events in database: {e}")
         print(f"Error updating calendar events in database: {e}")
+        
+def add_brainstorm_to_db(supabase, title, content):
+    """Adds a new brainstorm entry to the 'brainstorms' table in Supabase."""
+    if not supabase:
+        return
+    try:
+        supabase.table('brainstorms').insert({'title': title, 'content': content}).execute()
+        st.success("Brainstorm entry added to the database.")
+    except Exception as e:
+        st.error(f"Error adding brainstorm entry to database: {e}")
+        print(f"Error adding brainstorm entry to database: {e}")
 
 @st.cache_data(ttl=600)
 def get_user_from_db(_supabase, email):

@@ -24,9 +24,15 @@ def show_ui_core(user,role):
 
     show_sidebar(user, role)
     pages = {
+        "Home": [
+            st.Page("ui/home.py", title="Home"),
+        ],
+        "Brainstorm": [
+            st.Page("ui/brainstorm.py", title="Brainstorm content"),
+        ],
         "Generate": [
-            st.Page("ui/create_content.py", title="Content"),
-            st.Page("ui/create_slides.py", title="Slides"),
+            st.Page("ui/generate_content.py", title="Generate Content"),
+            st.Page("ui/create_slides.py", title="Create Slides"),
         ],
         "View": [
             st.Page("ui/view_content.py", title="Content"),
@@ -38,8 +44,8 @@ def show_ui_core(user,role):
             st.Page("ui/manage_users.py", title="Users"),
         ]
 
-    #pg = st.navigation(pages, position="top")
-    pg = st.navigation(pages)
+    pg = st.navigation(pages, position="top")
+    #pg = st.navigation(pages)
     pg.run()
 
 
