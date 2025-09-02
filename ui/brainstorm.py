@@ -46,6 +46,18 @@ def get_message_history(messages):
             message_history.append(AIMessage(content=m["content"]))
     return message_history
 
+def show_sidebar_save_info():
+    command="/save"
+    messages=st.session_state.get("brainstormmessages", [])
+    last_assistant_msg=get_last_assistant_message(messages)
+    if len(last_assistant_msg)<10:
+        return
+    with st.sidebar:
+        st.divider()
+        bname=st.text_input("Name")
+        if st.button("Save"):
+            save_brainstorm(command, bname, last_assistant_msg)
+
 def show_chat_ui():
     if "brainstormmessages" not in st.session_state:
         st.session_state.brainstormmessages = []
@@ -54,6 +66,8 @@ def show_chat_ui():
         if message["role"] != "system":
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
+    
+    show_sidebar_save_info()
     
     if prompt := st.chat_input("What content do you want to brainstorm today?", accept_file=True, file_type=["py", "js", "md", "txt"]):
         if prompt and prompt["files"]:
@@ -79,7 +93,7 @@ def show_chat_ui():
             reasoning = {"effort":"low","summary":None}
             model = ChatOpenAI(model=st.secrets['OPENAI_MODEL_NAME'], api_key=st.secrets['OPENAI_API_KEY'], reasoning=reasoning)
             llm_messages = create_llm_msg(get_prompt("brainstorm_content"), get_message_history(st.session_state.brainstormmessages))
-            returned_string = run_model(model, llm_messages)
+            returned_string,full_response_from_llm = run_model(model, llm_messages)
             with st.chat_message("assistant"):
                 st.markdown(returned_string)
             st.session_state.brainstormmessages.append({"role": "assistant", "content": returned_string})
