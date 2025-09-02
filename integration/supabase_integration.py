@@ -64,6 +64,32 @@ def add_brainstorm_to_db(supabase, title, content):
     except Exception as e:
         st.error(f"Error adding brainstorm entry to database: {e}")
         print(f"Error adding brainstorm entry to database: {e}")
+        
+def get_all_brainstorms_from_db(supabase):
+    """Fetches all brainstorm entries from the 'brainstorms' table in Supabase."""
+    if not supabase:
+        return []
+    try:
+        response = supabase.table('brainstorms').select('*').execute()
+        return response.data
+    except Exception as e:
+        # If the table doesn't exist, return an empty list
+        if "relation \"brainstorms\" does not exist" in str(e):
+            return []
+        st.error(f"Error fetching brainstorms from database: {e}")
+        print(f"Error fetching brainstorms from database: {e}")
+        return []
+    
+def update_brainstorm_slides_in_db(supabase, row_id, slide_json):
+    """Updates the slides_json field of a brainstorm entry in the 'brainstorms' table."""
+    if not supabase:
+        return
+    try:
+        supabase.table('brainstorms').update({'slide_json': slide_json}).eq('id', row_id).execute()
+        st.success("Brainstorm slides updated in the database.")
+    except Exception as e:
+        st.error(f"Error updating brainstorm slides in database: {e}")
+        print(f"Error updating brainstorm slides in database: {e}")
 
 @st.cache_data(ttl=600)
 def get_user_from_db(_supabase, email):

@@ -2,7 +2,7 @@ import streamlit as st
 
 from integration.supabase_integration import get_supabase_client, get_all_brainstorms_from_db
 
-def show_brainstorms():
+def create_ppt_files():
     supabase = get_supabase_client()
     brainstorms = get_all_brainstorms_from_db(supabase)    
     selection=st.dataframe(brainstorms, selection_mode="single-row", on_select="rerun")
@@ -23,5 +23,5 @@ def show_brainstorms():
         st.json(slides_json)
         
     
-st.title("Brainstormed Content")    
-show_brainstorms()
+st.title("Create PPT Files")    
+create_ppt_files()

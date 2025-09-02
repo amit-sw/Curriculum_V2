@@ -32,7 +32,11 @@ def show_ui_core(user,role):
         ],
         "Generate": [
             st.Page("ui/generate_content.py", title="Generate Content"),
-            st.Page("ui/create_slides.py", title="Create Slides"),
+            #st.Page("ui/create_slides.py", title="Create Slides"),
+        ],
+        "Create": [
+            #st.Page("ui/generate_content.py", title="Generate Content"),
+            st.Page("ui/create_ppt_files.py", title="Create PPT Files"),
         ],
         "View": [
             st.Page("ui/view_content.py", title="Content"),

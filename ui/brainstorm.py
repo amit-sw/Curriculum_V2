@@ -4,6 +4,7 @@ from langchain_openai import ChatOpenAI
 
 from utils.prompt_manager import get_prompt
 from integration.supabase_integration import get_supabase_client, add_brainstorm_to_db
+from utils.llm_calls import run_model
 
 def get_file_contents(uploaded_file):
         file_contents = uploaded_file.read()
@@ -75,9 +76,12 @@ def show_chat_ui():
             return
 
         with st.spinner("Thinking ...", show_time=True):
-            model = ChatOpenAI(model=st.secrets['OPENAI_MODEL_NAME'], api_key=st.secrets['OPENAI_API_KEY'], streaming=True)
+            reasoning = {"effort":"low","summary":None}
+            model = ChatOpenAI(model=st.secrets['OPENAI_MODEL_NAME'], api_key=st.secrets['OPENAI_API_KEY'], reasoning=reasoning)
             llm_messages = create_llm_msg(get_prompt("brainstorm_content"), get_message_history(st.session_state.brainstormmessages))
-            returned_string=st.write_stream(model.stream(llm_messages))
+            returned_string = run_model(model, llm_messages)
+            with st.chat_message("assistant"):
+                st.markdown(returned_string)
             st.session_state.brainstormmessages.append({"role": "assistant", "content": returned_string})
 
 if __name__ == "__main__":
