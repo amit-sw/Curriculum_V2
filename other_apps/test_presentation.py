@@ -138,27 +138,29 @@ def create_title_slide(prs, title, subtitle):
     title_slide_layout = prs.slide_layouts[0]
     slide = prs.slides.add_slide(title_slide_layout)
     title_shape = slide.shapes.title
-    subtitle_shape = slide.placeholders[1]
+
     #print(f"DEBUG: Checking file exists: assets/backgrounds/title_background_pro.jpg: {os.path.exists('assets/backgrounds/title_background_pro.jpg')}")
     #print(f"DEBUG: WHere am I: {os.getcwd()}")
 
     IMG = pathlib.Path(__file__).parents[1] / "assets" / "backgrounds" / "title_background_pro.png"
-    set_slide_background_picture(slide, prs, str(IMG))
+    #set_slide_background_picture(slide, prs, str(IMG))
     #set_slide_background_picture(slide, prs, "assets/backgrounds/title_background_pro.png")
 
     title_shape.text = title
     title_shape.text_frame.paragraphs[0].font.size = Pt(40)
     title_shape.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
 
-    subtitle_shape.text = subtitle
-    subtitle_shape.text_frame.paragraphs[0].font.size = Pt(24)
-    subtitle_shape.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+    if len(slide.placeholders) > 1:
+        subtitle_shape = slide.placeholders[1]
+        subtitle_shape.text = subtitle
+        subtitle_shape.text_frame.paragraphs[0].font.size = Pt(24)
+        subtitle_shape.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
 
     LOGO = pathlib.Path(__file__).parents[1] / "assets" / "logo.png"
     add_logo(slide, prs, str(LOGO))
     
 def create_content_side(prs, slide_data):
-    content_slide_layout = prs.slide_layouts[1]
+    content_slide_layout = prs.slide_layouts[1] # For Elementary template is being fixed.
     slide = prs.slides.add_slide(content_slide_layout)
     shapes = slide.shapes
     title_shape = shapes.title
@@ -189,11 +191,11 @@ def create_content_side(prs, slide_data):
     
     
 def create_one_presentation(presentation, theme, output_path):
-    prs = Presentation()
+    prs = Presentation('assets/templates/elementary.pptx')
     create_title_slide(prs, presentation['title'], presentation.get('subtitle', ''))
     for slide_data in presentation['slides']:
         create_content_side(prs, slide_data)
     prs.save(output_path)
 
 
-create_one_presentation(my_presentation, 'theme3', 'output/Memory_in_Agentic_AI4.pptx')
+create_one_presentation(my_presentation, 'theme3', 'output/Memory_in_AI03.pptx')
