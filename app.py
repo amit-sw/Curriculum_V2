@@ -25,7 +25,9 @@ def show_ui(user):
 def login_screen():
     st.button("🔑 Log in with Google", type="secondary", on_click=st.login)
 
-if not st.user.is_logged_in:
-    login_screen()
-else:
+is_logged_in = st.user.get("is_logged_in")
+
+if is_logged_in:
     show_ui(st.user)
+else:
+    login_screen()
