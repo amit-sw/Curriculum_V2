@@ -110,7 +110,7 @@ def create_content_side(prs, slide_data,logo_path):
     add_logo(slide, prs, logo_path)
     
     
-def create_one_presentation(slide_json, theme, output_path):
+def create_one_presentation(slide_json, theme, output_fname):
     prs = Presentation()
     print(f"DEBUG DE:\n\n{slide_json=}\n\n")
     logo_path = str(pathlib.Path(__file__).parents[1] / "assets" / "logos" / "logoPro.png")
@@ -118,4 +118,5 @@ def create_one_presentation(slide_json, theme, output_path):
     create_title_slide(prs, slide_json['title'], slide_json.get('subtitle', ''),logo_path)
     for slide_data in slide_json['slides']:
         create_content_side(prs, slide_data,logo_path)
+    output_path = os.path.join("output", output_fname)
     prs.save(output_path)
