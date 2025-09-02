@@ -189,8 +189,6 @@ def create_content_side(prs, slide_data):
     
     
 def create_one_presentation(presentation, theme, output_path):
-
-
     prs = Presentation()
     create_title_slide(prs, presentation['title'], presentation.get('subtitle', ''))
     for slide_data in presentation['slides']:

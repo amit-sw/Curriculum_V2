@@ -1,6 +1,8 @@
 import streamlit as st
+import json
 
 from integration.supabase_integration import get_supabase_client, get_all_brainstorms_from_db
+from utils.ppt_generator import create_one_presentation
 
 def create_ppt_files():
     supabase = get_supabase_client()
@@ -15,12 +17,18 @@ def create_ppt_files():
         selected_row = brainstorms[selected_row_id]
         title = selected_row.get("title", "No Title")
         content = selected_row.get("content", "No Content")
-        slides_json = selected_row.get("slides_json", "{}")
-        st.markdown(f"## Title: {title}")
-        st.markdown(f"### Content")
-        st.markdown(content)
-        st.markdown(f"### Slides JSON")
-        st.json(slides_json)
+        slide_json = json.loads(selected_row.get("slide_json", "{}"))
+        with st.sidebar.expander(f"Title: {title}"):
+            st.markdown(content)
+        st.sidebar.markdown(f"### Slides JSON")
+        st.sidebar.json(slide_json, expanded=False)
+        if st.button("Generate PPTX"):
+            st.warning("PPTX generation not yet implemented.")
+            # TO-DO: Implement PPTX generation from slide_json
+            title_safe = title.replace(" ", "_").replace("/", "_")
+            create_one_presentation(slide_json,"Not used", f"output/{title_safe}.pptx")
+            st.success(f"PPTX file created: output/{title_safe}.pptx")
+            
         
     
 st.title("Create PPT Files")    
