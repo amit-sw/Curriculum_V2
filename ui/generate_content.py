@@ -3,6 +3,8 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 
+import time
+
 from integration.supabase_integration import get_supabase_client, get_all_brainstorms_from_db, update_brainstorm_slides_in_db
 from utils.llm_calls import create_llm_msg
 from utils.prompt_manager import get_prompt
@@ -56,16 +58,20 @@ def generate_content():
         row_id = selected_row.get("id")
         title = selected_row.get("title", "No Title")
         content = selected_row.get("content", "No Content")
-        slides_json = selected_row.get("slides_json", "{}")
+        slide_json = selected_row.get("slide_json", "{}")
         with st.expander(f"Title: {title}"):
            st.markdown(content)
-        if slides_json and slides_json != "{}":
-            st.text_area("Slides JSON", slides_json, height=300)
+        if slide_json and slide_json != "{}":
+            st.text_area("Slides JSON", slide_json, height=300)
             if st.button("Render Slides"):
-                st.markdown("### Slides Preview")
+                st.markdown("### TO-DO TO-DO TO-DO: Slides Preview")
         else:
             if st.button("Generate JSON"):
-                generate_json_for_slides(row_id, title, content)
+                start_time = time.time()
+                with st.spinner("Generating slides...", show_time=True):
+                    generate_json_for_slides(row_id, title, content)
+                    elapsed = time.time() - start_time
+                    st.markdown(f"Slide generation: ({elapsed:.1f}s elapsed)")
         
     
 st.title("Generate Content")   

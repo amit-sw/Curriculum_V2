@@ -5,7 +5,7 @@ import pathlib
 
 from pptx import Presentation
 from pptx.util import Inches, Pt
-from pptx.enum.text import PP_ALIGN
+from pptx.enum.text import PP_ALIGN, MSO_AUTO_SIZE
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.util import Cm
@@ -45,7 +45,7 @@ def set_slide_background_picture(slide, prs, image_path: str):
     spTree.insert(insert_idx, pic_el)
 
 
-def add_logo(slide, prs, logo_path: str, width_cm: float = 2.5):
+def add_logo(slide, prs, logo_path: str, width_cm: float = 5.65):
     """Add a logo image to the lower-right corner of the slide."""
     from pptx.util import Cm
     if not os.path.exists(logo_path):
@@ -53,9 +53,16 @@ def add_logo(slide, prs, logo_path: str, width_cm: float = 2.5):
         return
     logo_width = Cm(width_cm)
     logo_height = None  # auto-scale
-    left = prs.slide_width - logo_width
-    top = prs.slide_height - Cm(2.5)  # 2.5 cm up from bottom
-    slide.shapes.add_picture(logo_path, left, top, width=logo_width, height=logo_height)
+    # Add first to get actual rendered size (height auto-scales from width)
+    pic = slide.shapes.add_picture(logo_path, Cm(0), Cm(0), width=logo_width, height=logo_height)
+
+    # Reposition to lower-right with margins; ensures it stays on-screen
+    horizontal_margin = Cm(1.0)
+    vertical_margin=Cm(4.0)
+    print(f"DEBUG: {prs.slide_width=}, {pic.width=}, {horizontal_margin=}")
+    print(f"Debug: {prs.slide_height=}, {pic.height=}, {vertical_margin=}")
+    pic.left = prs.slide_width - pic.width - horizontal_margin
+    pic.top = prs.slide_height - vertical_margin
 
 
 def create_title_slide(prs, title, subtitle,logo_path):
@@ -72,11 +79,13 @@ def create_title_slide(prs, title, subtitle,logo_path):
     #set_slide_background_picture(slide, prs, "assets/backgrounds/title_background_pro.png")
 
     title_shape.text = title
-    title_shape.text_frame.paragraphs[0].font.size = Pt(40)
+    title_shape.text_frame.paragraphs[0].font.size = Pt(60)
+    title_shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
     title_shape.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
 
     subtitle_shape.text = subtitle
-    subtitle_shape.text_frame.paragraphs[0].font.size = Pt(24)
+    subtitle_shape.text_frame.paragraphs[0].font.size = Pt(36)
+    subtitle_shape.text_frame.paragraphs[0].font.color.rgb = RGBColor(255, 255, 255)
     subtitle_shape.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
 
     add_logo(slide, prs, logo_path )
@@ -87,26 +96,51 @@ def create_content_side(prs, slide_data,logo_path):
     shapes = slide.shapes
     title_shape = shapes.title
     body_shape = shapes.placeholders[1]
-    
+
     title_shape.text = slide_data.get('title', 'Slide')
-    
+    # Set blue background for title
+    title_shape.fill.solid()
+    title_shape.fill.fore_color.rgb = RGBColor(0, 51, 153)  # dark blue
+    # Set title text color to white
+    for paragraph in title_shape.text_frame.paragraphs:
+        for run in paragraph.runs:
+            run.font.color.rgb = RGBColor(255, 255, 255)
+
     tf = body_shape.text_frame
-    tf.clear()  # Clear any existing content
+    tf.clear()  # Clear any existing content and start fresh
+    tf.word_wrap = True
+    tf.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
+
+    first_para_used = False
     for block in slide_data.get('content_blocks', []):
-        if block['type'] == 'Text':
-            p = tf.add_paragraph()
-            p.text = block['body']
-            p.font.size = Pt(18)
-            p.space_after = Pt(10)
-        elif block['type'] == 'Code':
-            p = tf.add_paragraph()
-            p.text = block['body']
-            p.font.size = Pt(14)
-            p.font.name = 'Courier New'
-            p.font.color.rgb = RGBColor(0, 0, 255)
-            p.space_after = Pt(10)
-        elif block['type'] == 'Image':
-            print(f"TODO TODO TODO: Not doing anything for image block yet. query: {block['query']}")
+        btype = str(block.get('type', '')).strip().lower()
+        text = block.get('body', '')
+
+        if btype == 'text':
+            for line in text.splitlines():
+                if line.strip() == '':
+                    continue  # skip empty lines
+                p = tf.paragraphs[0] if not first_para_used else tf.add_paragraph()
+                p.text = line
+                p.level = 0  # ensure bulleted at base level
+                for run in p.runs:
+                    run.font.size = Pt(24)
+                first_para_used = True
+
+        elif btype == 'code':
+            p = tf.paragraphs[0] if not first_para_used else tf.add_paragraph()
+            p.text = text
+            p.level = 0
+            for run in p.runs:
+                run.font.size = Pt(24)
+                run.font.name = 'Courier New'
+                run.font.color.rgb = RGBColor(0, 0, 255)
+            first_para_used = True
+
+        elif btype == 'image':
+            # Placeholder: image handling not implemented yet
+            print(f"TODO: Image block not implemented yet. query: {block.get('query')} ")
+
     add_logo(slide, prs, logo_path)
     
     
